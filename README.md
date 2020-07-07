@@ -134,6 +134,48 @@ TODO
 
 TODO
 
+## Use in Spring Boot 2.x ##
+
+
+For setting up the full Spring Boot test context you need to create following initializing class and register it in your jexunit.properties as `jexunit.sheet.before` under its fully qualified name. It will set itself as a callback object to handle the injection mechanism of Spring for new instantiated TestCommand objects. 
+
+```
+
+@SpringBootTest
+@WebAppConfiguration
+@ActiveProfiles(value = "test"
+@ContextConfiguration(classes = SpringTestInitializer.WebConfig.class)
+public class SpringTestInitializer implements BeforeSheet, InstantiationCallback {
+
+    // from package org.springframework.test.context.
+    private static TestContextManager testContextManager;
+
+    @Override
+    public void run() throws Exception {
+        // The Spring TestContextManager
+        testContextManager = TestContextManager(getClass());
+        // for initializing Spring Context
+        testContextManager.prepareTestInstance(this);
+        // set Callback for initializing TestCommands
+        com.jexunit.core.context.TestContextManager.setInstantiationCallback(this);
+    }
+
+    @Override
+    public <T> void perform(Class<T> type, T instance) throws Exception {
+        // Initialize TestCommand instance
+        testContextManager.prepareTestInstance(instance);
+    }
+
+    // Register package to scan for beans
+    @Configuration
+    @ComponentScan("com.your.company")
+    public static class WebConfig {
+    }
+}
+
+```
+
+After that each class annotated with `@TestCommand` will get the container managed beans by `@Autowired` injection.
 
 ---
 
