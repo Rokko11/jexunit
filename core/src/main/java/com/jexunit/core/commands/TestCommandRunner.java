@@ -58,6 +58,7 @@ public class TestCommandRunner {
             } else if (testCommand.getType() == Type.CLASS) {
                 // prepare and run test-command defined by a class
                 final Object testCommandInstance = testCommand.getImplementation().newInstance();
+                TestContextManager.init((Class<Object>) testCommand.getImplementation(), testCommandInstance);
                 TestContextManager.add((Class<Object>) testCommand.getImplementation(), testCommandInstance);
 
                 // inject Test-Parameters (and -Context) to the class
@@ -253,6 +254,7 @@ public class TestCommandRunner {
             Object instance = TestContextManager.get(clazz);
             if (instance == null) {
                 instance = clazz.newInstance();
+                TestContextManager.init(clazz, instance);
                 TestContextManager.add(clazz, instance);
             }
             o = instance;

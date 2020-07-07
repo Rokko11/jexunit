@@ -14,6 +14,12 @@ public class TestContextManager {
 
     private static final ThreadLocal<TestContext> context = InheritableThreadLocal.withInitial(TestContext::new);
 
+    private static InstantiationCallback instantiationCallback;
+
+    public static void setInstantiationCallback(InstantiationCallback callback) {
+        instantiationCallback = callback;
+    }
+
     /**
      * Get the TestContext.
      *
@@ -71,4 +77,13 @@ public class TestContextManager {
         return getTestContext().get(type, id);
     }
 
+    public static void init(Class<Object> type, Object instance) {
+        if (instantiationCallback != null) {
+            try {
+                instantiationCallback.perform(type, instance);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }
